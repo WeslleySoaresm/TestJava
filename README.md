@@ -342,3 +342,152 @@ public class ExemploArithmeticExceptionTest {
 
 -----
 
+🏗️ Padrão AAA (Arrange, Act, Assert) e Cleanup
+O padrão AAA define os três estágios essenciais de um bom teste unitário (ou de integração), garantindo que cada teste seja focado, claro e fácil de entender. O Cleanup é um estágio adicional (geralmente implícito ou gerenciado pelo framework) para garantir a independência dos testes.
+
+1. Arrange (Arranjar / Preparar)
+O que fazer: Configurar o cenário para o teste.
+
+Inicializar objetos necessários.
+
+Criar dados de entrada (inputs).
+
+Configurar mocks ou stubs para dependências externas.
+
+Definir o estado inicial do sistema/objetos.
+
+Objetivo: Ter tudo pronto para a ação do teste.
+
+Exemplo:
+
+Java
+
+// Arrange
+Calculadora calculadora = new Calculadora(); // Objeto a ser testado
+int num1 = 5;
+int num2 = 3;
+2. Act (Agir / Executar)
+O que fazer: Executar a ação principal que está sendo testada.
+
+Chamar o método da unidade de código que você quer verificar.
+
+Normalmente, há apenas uma chamada principal neste estágio.
+
+Objetivo: Desencadear o comportamento que você deseja validar.
+
+Exemplo:
+
+Java
+
+// Act
+int resultado = calculadora.somar(num1, num2); // Chama o método testado
+3. Assert (Verificar / Afirmar)
+O que fazer: Verificar o resultado da ação.
+
+Comparar o resultado com o esperado.
+
+Verificar o estado dos objetos após a ação.
+
+Confirmar interações com mocks.
+
+Usar asserções (assertEquals(), assertTrue(), assertThrows(), etc.).
+
+Objetivo: Validar que o código se comportou como esperado.
+
+Exemplo:
+
+Java
+
+// Assert
+assertEquals(8, resultado, "A soma de 5 e 3 deve ser 8"); // Verifica o resultado
+4. Cleanup (Limpar / Desmontar) - Opcional
+O que fazer: Limpar recursos ou estados criados que possam afetar testes subsequentes.
+
+Redefinir estado de objetos compartilhados.
+
+Fechar conexões (banco de dados, rede).
+
+Excluir arquivos temporários.
+
+Objetivo: Garantir que cada teste seja independente e que o ambiente esteja limpo para o próximo teste.
+
+No JUnit: É geralmente feito em métodos anotados com @AfterEach (para limpeza por teste) ou @AfterAll (para limpeza global da classe).
+
+Exemplo Completo no JUnit 5 com AAA:
+Java
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.function.Executable; // Para o exemplo de Act em assertThrows
+
+class Calculadora {
+    public int somar(int a, int b) { return a + b; }
+    public int dividir(int a, int b) {
+        if (b == 0) { throw new ArithmeticException("Não é possível dividir por zero!"); }
+        return a / b;
+    }
+}
+
+@DisplayName("Testes da Calculadora - Padrão AAA")
+class CalculadoraAAATest {
+
+    private Calculadora calculadora;
+
+    @BeforeEach // [Arrange] Setup comum para cada teste
+    void setup() {
+        calculadora = new Calculadora();
+        System.out.println("  [Arrange] Calculadora inicializada.");
+    }
+
+    @AfterEach // [Cleanup] Limpeza após cada teste
+    void teardown() {
+        calculadora = null;
+        System.out.println("  [Cleanup] Calculadora resetada.");
+    }
+
+    @Test
+    @DisplayName("Deve somar dois números inteiros positivos")
+    void deveSomarDoisNumerosPositivos() {
+        // Arrange (específico do teste, se houver, mas a calculadora já está arranjada)
+        int num1 = 5;
+        int num2 = 3;
+
+        // Act
+        int resultado = calculadora.somar(num1, num2);
+
+        // Assert
+        assertEquals(8, resultado, "A soma de 5 e 3 deve ser 8");
+        System.out.println("    [Assert] Soma verificada. Teste de somar PASSOU.");
+    }
+
+    @Test
+    @DisplayName("Deve lançar ArithmeticException ao dividir por zero")
+    void deveLancarExcecaoAoDividirPorZero() {
+        // Arrange (a calculadora já está arranjada)
+        int numerador = 10;
+        int denominador = 0;
+
+        // Act (encapsulado na lambda para assertThrows)
+        Executable divisaoPorZero = () -> calculadora.dividir(numerador, denominador);
+
+        // Assert
+        assertThrows(ArithmeticException.class, divisaoPorZero, "Deve lançar ArithmeticException ao dividir por zero");
+        System.out.println("    [Assert] Exceção de divisão por zero verificada. Teste de exceção PASSOU.");
+    }
+}
+Por Que Usar o Padrão AAA?
+Legibilidade: Torna o código de teste mais fácil de ler e entender, com intenção clara em cada seção.
+
+Foco: Ajuda a garantir que cada teste tenha um único propósito, evitando testar muitas coisas ao mesmo tempo.
+
+Manutenibilidade: Facilita a identificação de problemas quando um teste falha e simplifica modificações ou adições de novos testes.
+
+Uniformidade: Promove um estilo consistente de escrita de testes em toda a equipe ou projeto.
+
+Adotar o padrão AAA é uma das melhores práticas para escrever testes eficientes e robustos, garantindo a qualidade do seu software.
+
+
+
